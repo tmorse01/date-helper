@@ -69,3 +69,69 @@ export const subtractYears = (
 ): Dayjs => {
   return withTimezone(date, tz).subtract(years, "year");
 };
+
+/**
+ * Adds specified number of hours to the date in the specified timezone
+ */
+export const addHours = (
+  date: string | Date,
+  hours: number,
+  tz?: string
+): Dayjs => {
+  return withTimezone(date, tz).add(hours, "hour");
+};
+
+/**
+ * Subtracts specified number of hours from the date in the specified timezone
+ */
+export const subtractHours = (
+  date: string | Date,
+  hours: number,
+  tz?: string
+): Dayjs => {
+  return withTimezone(date, tz).subtract(hours, "hour");
+};
+
+/**
+ * Adds specified number of minutes to the date in the specified timezone
+ */
+export const addMinutes = (
+  date: string | Date,
+  minutes: number,
+  tz?: string
+): Dayjs => {
+  return withTimezone(date, tz).add(minutes, "minute");
+};
+
+/**
+ * Subtracts specified number of minutes from the date in the specified timezone
+ */
+export const subtractMinutes = (
+  date: string | Date,
+  minutes: number,
+  tz?: string
+): Dayjs => {
+  return withTimezone(date, tz).subtract(minutes, "minute");
+};
+
+/**
+ * Adds specified number of milliseconds to the date in the specified timezone
+ */
+export const addMilliseconds = (
+  date: string | Date,
+  milliseconds: number,
+  tz?: string
+): Dayjs => {
+  return withTimezone(date, tz).add(milliseconds, "millisecond");
+};
+
+/**
+ * Subtracts specified number of milliseconds from the date in the specified timezone
+ */
+export const subtractMilliseconds = (
+  date: string | Date,
+  milliseconds: number,
+  tz?: string
+): Dayjs => {
+  return withTimezone(date, tz).subtract(milliseconds, "millisecond");
+};

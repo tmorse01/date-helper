@@ -26,6 +26,10 @@ export const toUnixTimestamp = (date: string | Date, tz?: string): number => {
  * Creates a dayjs object from a Unix timestamp (seconds since epoch) in the specified timezone
  */
 export const fromUnixTimestamp = (timestamp: number, tz?: string): Dayjs => {
+  // Validate input
+  if (typeof timestamp !== "number") {
+    throw new Error("Invalid timestamp: must be a number");
+  }
   if (tz === "UTC") {
     // Unix timestamps are seconds since epoch in UTC
     // Convert directly to UTC time without adjusting for local timezone

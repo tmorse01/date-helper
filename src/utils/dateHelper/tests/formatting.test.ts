@@ -37,6 +37,18 @@ describe("formatDate", () => {
       "2025-02-15"
     );
   });
+
+  test("handles invalid date input gracefully", () => {
+    // Should not throw an error with invalid input
+    expect(() => formatting.formatDate("not-a-date")).not.toThrow();
+  });
+
+  test("throws error on invalid timezone", () => {
+    // Should fall back to local timezone with invalid timezone
+    expect(() =>
+      formatting.formatDate(FIXED_DATE, "YYYY-MM-DD", "Invalid/Zone")
+    ).toThrow();
+  });
 });
 
 describe("formatDateTime", () => {
@@ -59,6 +71,13 @@ describe("formatDateTime", () => {
     const result = formatting.formatDateTime(new Date("2025-05-04T00:00:00"));
     expect(result).toMatch(/^2025-05-04/); // Just check that it starts with the correct date
   });
+
+  test("handles null input by returning 'Invalid Date'", () => {
+    // @ts-expect-error Testing null input even though TypeScript doesn't allow it
+    const result = formatting.formatDateTime(null);
+    // Should return "Invalid Date"
+    expect(result).toBe("Invalid Date");
+  });
 });
 
 describe("parseDate", () => {
@@ -76,6 +95,11 @@ describe("parseDate", () => {
   test("handles invalid date", () => {
     // dayjs silently handles invalid dates
     const result = formatting.parseDate("not-a-date");
+    expect(result.isValid()).toBe(false);
+  });
+
+  test("handles empty string input", () => {
+    const result = formatting.parseDate("");
     expect(result.isValid()).toBe(false);
   });
 });
