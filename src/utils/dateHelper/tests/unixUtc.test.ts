@@ -5,7 +5,7 @@ import * as unixUtc from "../unixUtc";
 
 // Constants for testing
 const NYC_TIMEZONE = "America/New_York";
-// const TOKYO_TIMEZONE = "Asia/Tokyo";
+const TOKYO_TIMEZONE = "Asia/Tokyo";
 
 describe("toUnixTimestamp", () => {
   test("converts date to Unix timestamp", () => {
@@ -58,6 +58,50 @@ describe("toUnixTimestamp", () => {
     // Therefore, they are 1 second apart.
     expect(afterTimestamp - beforeTimestamp).toBe(1);
   });
+
+  // New tests for date-only formats and null/undefined handling
+  test("handles date-only formats consistently", () => {
+    const formats = [
+      "2025-05-02",
+      "2025/05/02",
+      "2025-05-02T00:00",
+      "2025-05-02 00:00:00",
+    ];
+
+    const timestamps = formats.map((format) =>
+      unixUtc.toUnixTimestamp(format, "UTC")
+    );
+
+    // All these formats should yield the same timestamp
+    const expectedTimestamp = timestamps[0];
+    timestamps.forEach((timestamp) => {
+      expect(timestamp).toBe(expectedTimestamp);
+    });
+  });
+
+  test("handles undefined input by throwing a meaningful error", () => {
+    // @ts-expect-error - Testing undefined input
+    expect(() => unixUtc.toUnixTimestamp(undefined)).toThrow();
+  });
+
+  test("handles fall-back DST transition correctly", () => {
+    // Test during fall back DST transition (first occurrence of 1:30 AM)
+    const firstOccurrence = "2022-11-06T01:30:00-04:00";
+    // Second occurrence of 1:30 AM after falling back
+    const secondOccurrence = "2022-11-06T01:30:00-05:00";
+
+    const firstTimestamp = unixUtc.toUnixTimestamp(
+      firstOccurrence,
+      NYC_TIMEZONE
+    );
+    const secondTimestamp = unixUtc.toUnixTimestamp(
+      secondOccurrence,
+      NYC_TIMEZONE
+    );
+
+    // The second occurrence should be 1 hour later in Unix time
+    expect(secondTimestamp - firstTimestamp).toBe(3600);
+  });
 });
 
 describe("fromUnixTimestamp", () => {
@@ -104,6 +148,30 @@ describe("fromUnixTimestamp", () => {
   //   // Should correctly show as 3:30AM (after DST change) not 2:30AM
   //   expect(result.format("YYYY-MM-DD HH:mm")).toBe("2022-03-13 03:30");
   // });
+
+  // New tests for preserving time precision between timezones
+  test("preserves time precision when converting between timezones", () => {
+    const timestamp = 1739577600.123; // Adding fractional seconds
+    const utcResult = unixUtc.fromUnixTimestamp(timestamp, "UTC");
+    const nycResult = unixUtc.fromUnixTimestamp(timestamp, NYC_TIMEZONE);
+    const tokyoResult = unixUtc.fromUnixTimestamp(timestamp, TOKYO_TIMEZONE);
+
+    // Despite being in different timezones, the seconds and milliseconds should be preserved
+    expect(utcResult.format("ss.SSS")).toBe(nycResult.format("ss.SSS"));
+    expect(utcResult.format("ss.SSS")).toBe(tokyoResult.format("ss.SSS"));
+  });
+
+  test("handles zero timestamp correctly", () => {
+    // Unix epoch (January 1, 1970, 00:00:00 UTC)
+    const result = unixUtc.fromUnixTimestamp(0, "UTC");
+    expect(result.format("YYYY-MM-DD HH:mm:ss")).toBe("1970-01-01 00:00:00");
+  });
+
+  test("handles negative timestamps (pre-1970 dates)", () => {
+    // December 31, 1969, 23:00:00 UTC (one hour before Unix epoch)
+    const result = unixUtc.fromUnixTimestamp(-3600, "UTC");
+    expect(result.format("YYYY-MM-DD HH:mm:ss")).toBe("1969-12-31 23:00:00");
+  });
 });
 
 describe("toUTC", () => {
@@ -136,6 +204,19 @@ describe("toUTC", () => {
     expect(() => unixUtc.toUTC(null)).not.toThrow();
     // @ts-expect-error - Testing undefined input
     expect(() => unixUtc.toUTC(undefined)).not.toThrow();
+  });
+
+  // New test cases for date-only formats and millisecond precision
+  test("handles date-only strings correctly", () => {
+    const result = unixUtc.toUTC("2025-05-02");
+    expect(result.format("YYYY-MM-DD HH:mm:ss")).toBe("2025-05-02 00:00:00");
+  });
+
+  test("preserves millisecond precision", () => {
+    const result = unixUtc.toUTC("2025-05-02T12:34:56.789-05:00");
+    expect(result.format("YYYY-MM-DD HH:mm:ss.SSS")).toBe(
+      "2025-05-02 17:34:56.789"
+    );
   });
 });
 
@@ -175,5 +256,25 @@ describe("fromUTC", () => {
 
     // Should skip to 3:30 AM EDT
     expect(result.format("YYYY-MM-DD HH:mm")).toBe("2022-03-13 03:30");
+  });
+
+  // New tests for null handling and preserving precision
+  test("handles null input gracefully", () => {
+    // @ts-expect-error - Testing null input
+    expect(() => unixUtc.fromUTC(null, NYC_TIMEZONE)).not.toThrow();
+  });
+
+  test("preserves millisecond precision when converting to timezone", () => {
+    const dateWithMs = "2025-05-02T12:34:56.789Z";
+    const result = unixUtc.fromUTC(dateWithMs, NYC_TIMEZONE);
+    // Verify millseconds are preserved in timezone conversion
+    expect(result.format("YYYY-MM-DD HH:mm:ss.SSS")).toMatch(
+      /2025-05-02 \d{2}:34:56.789/
+    );
+  });
+
+  test("handles date-only formats consistently", () => {
+    const result = unixUtc.fromUTC("2025-05-02", NYC_TIMEZONE);
+    expect(result.format("YYYY-MM-DD HH:mm:ss")).toBe("2025-05-01 20:00:00");
   });
 });

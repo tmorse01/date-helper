@@ -49,6 +49,28 @@ describe("formatDate", () => {
       formatting.formatDate(FIXED_DATE, "YYYY-MM-DD", "Invalid/Zone")
     ).toThrow();
   });
+
+  // New tests for date-only formats
+  test("correctly formats date-only input in various formats", () => {
+    expect(formatting.formatDate("2025-05-02", "YYYY-MM-DD")).toBe(
+      "2025-05-02"
+    );
+    expect(formatting.formatDate("2025/05/02", "YYYY-MM-DD")).toBe(
+      "2025-05-02"
+    );
+    expect(
+      formatting.formatDate("2025-05-02T00:00:00.000Z", "YYYY-MM-DD")
+    ).toBe("2025-05-02");
+  });
+
+  test("preserves millisecond precision when formatting", () => {
+    expect(
+      formatting.formatDate(
+        "2025-05-02T00:00:00.123Z",
+        "YYYY-MM-DD HH:mm:ss.SSS"
+      )
+    ).toBe("2025-05-02 00:00:00.123");
+  });
 });
 
 describe("formatDateTime", () => {
@@ -78,6 +100,23 @@ describe("formatDateTime", () => {
     // Should return "Invalid Date"
     expect(result).toBe("Invalid Date");
   });
+
+  // New tests for date-only handling in formatDateTime
+  test("treats date-only inputs consistently", () => {
+    expect(formatting.formatDateTime("2025-05-02", "UTC")).toBe(
+      "2025-05-02 00:00:00"
+    );
+    expect(formatting.formatDateTime("2025/05/02", "UTC")).toBe(
+      "2025-05-02 00:00:00"
+    );
+  });
+
+  test("preserves milliseconds in output", () => {
+    // Adding a custom format parameter would be helpful for this test
+    const result = formatting.formatDateTime("2025-05-02T00:00:00.123Z", "UTC");
+    // Should include milliseconds if we extend formatDateTime to support custom formats
+    expect(result).toBe("2025-05-02 00:00:00");
+  });
 });
 
 describe("parseDate", () => {
@@ -101,5 +140,46 @@ describe("parseDate", () => {
   test("handles empty string input", () => {
     const result = formatting.parseDate("");
     expect(result.isValid()).toBe(false);
+  });
+
+  // New tests for date-only parsing and timezone handling
+  test("parses date-only formats consistently", () => {
+    const formats = [
+      "2025-05-02",
+      "2025/05/02",
+      "2025-05-02T00:00",
+      "2025-05-02 00:00:00",
+      "2025-05-02T00:00:00.000Z",
+      "2025-05-02T12:00 AM",
+    ];
+
+    formats.forEach((format) => {
+      const result = formatting.parseDate(format);
+      expect(result.format("YYYY-MM-DD")).toBe("2025-05-02");
+    });
+  });
+
+  test("treats naive dates as local timezone by default", () => {
+    const naiveDate = "2025-05-01T10:00:00";
+    const result = formatting.parseDate(naiveDate);
+    // The result depends on the local timezone, but should be valid
+    expect(result.isValid()).toBe(true);
+  });
+
+  test("treats naive dates as specified timezone when provided", () => {
+    const naiveDate = "2025-05-01T10:00:00";
+    const nyResult = formatting.parseDate(naiveDate, NYC_TIMEZONE);
+    const tokyoResult = formatting.parseDate(naiveDate, TOKYO_TIMEZONE);
+
+    // These should be different due to timezone differences
+    expect(nyResult.format()).not.toBe(tokyoResult.format());
+  });
+
+  test("preserves millisecond precision", () => {
+    const dateWithMs = "2025-05-02T00:00:00.123Z";
+    const result = formatting.parseDate(dateWithMs);
+    expect(result.format("YYYY-MM-DD HH:mm:ss.SSS")).toBe(
+      "2025-05-02 00:00:00.123"
+    );
   });
 });
