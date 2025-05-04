@@ -10,6 +10,7 @@ import quarterOfYearPlugin from "dayjs/plugin/quarterOfYear";
 import isoWeekPlugin from "dayjs/plugin/isoWeek";
 import isLeapYearPlugin from "dayjs/plugin/isLeapYear";
 import localeData from "dayjs/plugin/localeData";
+import isoWeek from "dayjs/plugin/isoWeek";
 
 // Import common locales
 import "dayjs/locale/es";
@@ -26,6 +27,7 @@ dayjs.extend(quarterOfYearPlugin);
 dayjs.extend(isoWeekPlugin);
 dayjs.extend(isLeapYearPlugin);
 dayjs.extend(localeData);
+dayjs.extend(isoWeek);
 
 /**
  * Helper function to ensure consistent handling of optional timezone
