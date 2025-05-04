@@ -22,8 +22,9 @@ describe("toUnixTimestamp", () => {
 
     // There should be a timezone offset difference between UTC and NYC
     expect(utcTimestamp).not.toBe(nycTimestamp);
-    // NYC is behind UTC, so UTC timestamp should be larger
-    expect(utcTimestamp).toBeGreaterThan(nycTimestamp);
+    // When it's midnight in both places, the NYC timestamp will be higher
+    // because midnight in NYC is 5am UTC (later in the day)
+    expect(nycTimestamp).toBeGreaterThan(utcTimestamp);
   });
 
   test("handles Date objects", () => {
@@ -35,14 +36,13 @@ describe("toUnixTimestamp", () => {
 
 describe("fromUnixTimestamp", () => {
   test("converts Unix timestamp to date", () => {
-    // Unix timestamp for 2025-02-15 00:00:00 UTC
-    const timestamp = 1739548800;
+    const timestamp = 1739577600; // 2025-02-15 00:00:00 UTC
     const result = unixUtc.fromUnixTimestamp(timestamp, "UTC");
     expect(result.format("YYYY-MM-DD HH:mm:ss")).toBe("2025-02-15 00:00:00");
   });
 
   test("respects timezone", () => {
-    const timestamp = 1739548800; // 2025-02-15 00:00:00 UTC
+    const timestamp = 1739577600; // 2025-02-15 00:00:00 UTC
     const utcResult = unixUtc.fromUnixTimestamp(timestamp, "UTC");
     const nycResult = unixUtc.fromUnixTimestamp(timestamp, NYC_TIMEZONE);
 

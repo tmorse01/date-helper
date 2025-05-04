@@ -26,18 +26,17 @@ export const toUnixTimestamp = (date: string | Date, tz?: string): number => {
  * Creates a dayjs object from a Unix timestamp (seconds since epoch) in the specified timezone
  */
 export const fromUnixTimestamp = (timestamp: number, tz?: string): Dayjs => {
-  // Create a UTC date from the timestamp
-  const utcDate = dayjs.unix(timestamp).utc();
-
-  // Convert to specified timezone if provided
   if (tz === "UTC") {
-    return utcDate;
+    // Unix timestamps are seconds since epoch in UTC
+    // Convert directly to UTC time without adjusting for local timezone
+    return dayjs.unix(timestamp).utc();
   } else if (tz) {
-    return utcDate.tz(tz);
+    // For other timezones, convert from UTC to that timezone
+    return dayjs.unix(timestamp).tz(tz);
   }
 
   // Default to local timezone
-  return utcDate.local();
+  return dayjs.unix(timestamp);
 };
 
 /**
